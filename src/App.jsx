@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { Scan, UserPlus, History } from 'lucide-react';
+import { Scan, UserPlus, History, UserCircle, SlidersHorizontal } from 'lucide-react';
 import { AppProvider } from './context/AppContext';
 import ScannerTab from './components/ScannerTab';
 import RegistroVisitanteTab from './components/RegistroVisitanteTab';
 import HistorialAccesosTab from './components/HistorialAccesosTab';
+import PerfilTab from './components/PerfilTab';
+import HistorialVisitantes from './components/HistorialVisitantes';
 
 const tabs = [
   { id: 'scanner', label: 'Scanner Facial', icon: Scan },
   { id: 'registro', label: 'Registro Visitante', icon: UserPlus },
-  { id: 'historial', label: 'Historial Accesos', icon: History }
+  { id: 'historial', label: 'Historial Accesos', icon: History },
+  { id: 'historial-visitantes', label: 'Historial de Visitantes', icon: SlidersHorizontal },
+  { id: 'perfil', label: 'Perfil Aplicacion', icon: UserCircle }
 ];
 
 function App() {
@@ -64,6 +68,8 @@ function App() {
           {activeTab === 'scanner' && <ScannerTab />}
           {activeTab === 'registro' && <RegistroVisitanteTab />}
           {activeTab === 'historial' && <HistorialAccesosTab />}
+          {activeTab === 'perfil' && <PerfilTab />}
+          {activeTab === 'historial-visitantes' && <HistorialVisitantes />}
         </main>
 
         {/* Footer */}

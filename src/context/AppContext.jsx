@@ -28,8 +28,9 @@ export const AppProvider = ({ children }) => {
     setError(null);
     try {
       const data = await ApiService.obtenerVisitantes(filtros);
-      setVisitantes(data);
-      return data;
+      const rows = data?.results || data || [];
+      setVisitantes(rows);
+      return rows;
     } catch (err) {
       setError(err.message);
       console.error('Error al cargar visitantes:', err);
@@ -60,8 +61,9 @@ export const AppProvider = ({ children }) => {
     setError(null);
     try {
       const data = await ApiService.obtenerHistorialAccesos(filtros);
-      setHistorialAccesos(data);
-      return data;
+      const rows = data?.results || data || [];
+      setHistorialAccesos(rows);
+      return rows;
     } catch (err) {
       setError(err.message);
       console.error('Error al cargar historial:', err);
@@ -112,10 +114,10 @@ export const AppProvider = ({ children }) => {
       
       // Registrar el acceso automáticamente
       await registrarAcceso({
-        idScanner: resultado.idScanner,
-        tipo_persona: resultado.tipo_persona,
-        accion: resultado.autorizado ? 'Acceso Autorizado' : 'Acceso Denegado',
-        estado: resultado.autorizado ? 'EXITOSO' : 'DENEGADO',
+        idscanner: resultado.idscanner || null,
+        idusuario: resultado.idusuario || null,
+        idvisitante: resultado.idvisitante || null,
+        estado: resultado.autorizado ? 'Permitido' : 'Denegado',
         fecha_entrada: new Date().toISOString().split('T')[0],
         hora_entrada: new Date().toTimeString().split(' ')[0],
       });

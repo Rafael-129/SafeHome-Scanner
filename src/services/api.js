@@ -104,6 +104,10 @@ class ApiService {
     return this.request('/visitantes/hoy/');
   }
 
+  async obtenerVisitasFrecuentes(top = 10) {
+    return this.request(`/visitantes/frecuentes/?top=${top}`);
+  }
+
   // ============ USUARIOS (RESIDENTES) ============
   async obtenerUsuarios(filtros = {}) {
     const params = new URLSearchParams(filtros);
@@ -151,6 +155,18 @@ class ApiService {
 
   async obtenerDepartamento(id) {
     return this.request(`/departamentos/${id}/`);
+  }
+
+  // ============ PERFIL DE APLICACION ============
+  async obtenerPerfilActual() {
+    return this.request('/perfil/actual/');
+  }
+
+  async actualizarPerfilActual(data) {
+    return this.request('/perfil/actual/', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 
   // ============ UPLOAD DE ARCHIVOS ============

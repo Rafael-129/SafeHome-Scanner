@@ -8,24 +8,45 @@ class ApiService {
    */
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    const isFormData = options.body instanceof FormData;
+    const headers = {
+      ...options.headers,
+    };
+
+    if (!isFormData) {
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    }
+
     const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     };
 
     try {
       const response = await fetch(url, config);
+      const contentType = response.headers.get('content-type') || '';
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = contentType.includes('application/json')
+          ? await response.json().catch(() => ({}))
+          : await response.text().catch(() => '');
         console.error('Error del servidor:', errorData);
-        throw new Error(JSON.stringify(errorData) || 'Error en la petición');
+        throw new Error(
+          typeof errorData === 'string'
+            ? (errorData || 'Error en la petición')
+            : (JSON.stringify(errorData) || 'Error en la petición')
+        );
       }
 
-      return await response.json();
+      if (response.status === 204) {
+        return null;
+      }
+
+      if (contentType.includes('application/json')) {
+        return await response.json();
+      }
+
+      return await response.text();
     } catch (error) {
       console.error('Error en petición API:', error);
       throw error;
@@ -83,6 +104,10 @@ class ApiService {
     return this.request('/visitantes/hoy/');
   }
 
+  async obtenerVisitasFrecuentes(top = 10) {
+    return this.request(`/visitantes/frecuentes/?top=${top}`);
+  }
+
   // ============ USUARIOS (RESIDENTES) ============
   async obtenerUsuarios(filtros = {}) {
     const params = new URLSearchParams(filtros);
@@ -130,6 +155,18 @@ class ApiService {
 
   async obtenerDepartamento(id) {
     return this.request(`/departamentos/${id}/`);
+  }
+
+  // ============ PERFIL DE APLICACION ============
+  async obtenerPerfilActual() {
+    return this.request('/perfil/actual/');
+  }
+
+  async actualizarPerfilActual(data) {
+    return this.request('/perfil/actual/', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 
   // ============ UPLOAD DE ARCHIVOS ============

@@ -8,6 +8,7 @@ const ScannerFacial = ({ onScanComplete }) => {
   const [scanResult, setScanResult] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [error, setError] = useState(null);
+  const [dniBusqueda, setDniBusqueda] = useState('');
   const webcamRef = useRef(null);
 
   const iniciarEscaneo = async () => {
@@ -26,12 +27,14 @@ const ScannerFacial = ({ onScanComplete }) => {
       // Enviar al backend para procesamiento
       const escaneoData = {
         foto_capturada: imageSrc,
-        tipo_persona: 'visitante' // Por defecto, el backend puede determinarlo mejor
+        tipo_persona: 'visitante', // Por defecto, el backend puede determinarlo mejor
+        dni: dniBusqueda.trim() || undefined,
       };
 
       const resultado = await ApiService.procesarEscaneo(escaneoData);
       
       // Adaptar respuesta del backend
+      const personaDetectada = !!(resultado.idusuario || resultado.idvisitante);
       const resultadoFormateado = {
         foto_capturada: imageSrc,
         tipo_persona: resultado.tipo_persona || 'desconocido',
@@ -42,7 +45,7 @@ const ScannerFacial = ({ onScanComplete }) => {
           `${resultado.visitante_info?.nombre || ''} ${resultado.visitante_info?.apellido || ''}`.trim() :
           'Desconocido',
         departamento: resultado.usuario_info?.departamento || resultado.visitante_info?.depart_visita || 'N/A',
-        estado: resultado.tipo_persona !== 'desconocido' ? 'AUTORIZADO' : 'DESCONOCIDO'
+        estado: personaDetectada ? 'AUTORIZADO' : 'DESCONOCIDO'
       };
       
       setScanResult(resultadoFormateado);
@@ -52,14 +55,16 @@ const ScannerFacial = ({ onScanComplete }) => {
       }
 
       // Registrar en historial de accesos
-      await ApiService.registrarAcceso({
-        idscanner: resultado.idscanner,
-        idusuario: resultado.idusuario || null,
-        idvisitante: resultado.idvisitante || null,
-        fecha_entrada: new Date().toISOString().split('T')[0],
-        hora_entrada: new Date().toTimeString().split(' ')[0],
-        estado: resultadoFormateado.estado === 'AUTORIZADO' ? 'Permitido' : 'Denegado'
-      });
+      if (personaDetectada) {
+        await ApiService.registrarAcceso({
+          idscanner: resultado.idscanner,
+          idusuario: resultado.idusuario || null,
+          idvisitante: resultado.idvisitante || null,
+          fecha_entrada: new Date().toISOString().split('T')[0],
+          hora_entrada: new Date().toTimeString().split(' ')[0],
+          estado: resultadoFormateado.estado === 'AUTORIZADO' ? 'Permitido' : 'Denegado'
+        });
+      }
       
     } catch (err) {
       console.error('Error en escaneo:', err);
@@ -127,6 +132,18 @@ const ScannerFacial = ({ onScanComplete }) => {
       >
         {!cameraActive ? 'Activar Cámara' : isScanning ? 'Escaneando...' : 'Iniciar Escaneo'}
       </button>
+
+      <div className="mt-4">
+        <label className="block text-sm text-gray-400 mb-2">DNI (opcional, para simulacion)</label>
+        <input
+          type="text"
+          maxLength={8}
+          value={dniBusqueda}
+          onChange={(e) => setDniBusqueda(e.target.value.replace(/\D/g, ''))}
+          placeholder="Ej: 45678912"
+          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+        />
+      </div>
 
       {error && (
         <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">

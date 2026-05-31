@@ -84,13 +84,13 @@ const ScannerFacial = ({ onScanComplete }) => {
   };
 
   return (
-    <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
       <div className="flex items-center gap-2 mb-4">
-        <Camera className="w-5 h-5 text-gray-400" />
-        <h3 className="text-lg font-semibold text-gray-200">Vista de Cámara</h3>
+        <Camera className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Vista de Cámara</h3>
       </div>
 
-      <div className="relative bg-slate-800 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
+      <div className="relative bg-gray-100 dark:bg-slate-900 rounded-lg overflow-hidden aspect-video flex items-center justify-center border border-gray-200 dark:border-transparent transition-colors">
         {cameraActive ? (
           <Webcam
             ref={webcamRef}
@@ -128,20 +128,20 @@ const ScannerFacial = ({ onScanComplete }) => {
           }
         }}
         disabled={isScanning}
-        className="w-full mt-6 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full mt-6 bg-slate-800 hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {!cameraActive ? 'Activar Cámara' : isScanning ? 'Escaneando...' : 'Iniciar Escaneo'}
       </button>
 
       <div className="mt-4">
-        <label className="block text-sm text-gray-400 mb-2">DNI (opcional, para simulacion)</label>
+        <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">DNI (opcional, para simulacion)</label>
         <input
           type="text"
           maxLength={8}
           value={dniBusqueda}
           onChange={(e) => setDniBusqueda(e.target.value.replace(/\D/g, ''))}
           placeholder="Ej: 45678912"
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+          className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
         />
       </div>
 
@@ -157,25 +157,25 @@ const ScannerFacial = ({ onScanComplete }) => {
 const ResultadoEscaneo = ({ resultado }) => {
   if (!resultado) {
     return (
-      <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
         <div className="flex items-center gap-2 mb-4">
-          <User className="w-5 h-5 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-200">Resultado del Escaneo</h3>
+          <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Resultado del Escaneo</h3>
         </div>
         
         <div className="text-center py-16">
-          <User className="w-20 h-20 text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500">Esperando escaneo...</p>
+          <User className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-500">Esperando escaneo...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
       <div className="flex items-center gap-2 mb-4">
-        <User className="w-5 h-5 text-gray-400" />
-        <h3 className="text-lg font-semibold text-gray-200">Resultado del Escaneo</h3>
+        <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Resultado del Escaneo</h3>
       </div>
 
       <div className="text-center py-8">
@@ -187,24 +187,24 @@ const ResultadoEscaneo = ({ resultado }) => {
           />
         )}
 
-        <h4 className="text-xl font-bold text-white mb-2">{resultado.nombre || 'Desconocido'}</h4>
+        <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{resultado.nombre || 'Desconocido'}</h4>
         
         {resultado.departamento && (
-          <p className="text-blue-400 text-sm mb-4">📍 {resultado.departamento}</p>
+          <p className="text-blue-600 dark:text-blue-400 text-sm mb-4">📍 {resultado.departamento}</p>
         )}
 
-        <div className="inline-block px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm font-medium mb-4">
+        <div className="inline-block px-4 py-2 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-full text-sm font-medium mb-4 transition-colors">
           {resultado.estado}
         </div>
 
-        <div className="mt-6 pt-6 border-t border-dark-border">
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Confianza:</span>
-            <span className="text-white font-medium">{resultado.confianza_reconocimiento}%</span>
+            <span className="text-gray-500 dark:text-gray-400">Confianza:</span>
+            <span className="text-slate-800 dark:text-white font-medium">{resultado.confianza_reconocimiento}%</span>
           </div>
           <div className="flex justify-between text-sm mt-2">
-            <span className="text-gray-400">Tipo:</span>
-            <span className="text-white font-medium capitalize">{resultado.tipo_persona}</span>
+            <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
+            <span className="text-slate-800 dark:text-white font-medium capitalize">{resultado.tipo_persona}</span>
           </div>
         </div>
       </div>

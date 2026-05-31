@@ -142,10 +142,10 @@ export default function RegistroVisitanteTab() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
         <div className="flex items-center gap-2 mb-6">
-          <UserPlus className="w-6 h-6 text-blue-400" />
-          <h2 className="text-xl font-semibold text-gray-200">Registro de Visitante</h2>
+          <UserPlus className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-gray-200">Registro de Visitante</h2>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -154,7 +154,7 @@ export default function RegistroVisitanteTab() {
             <div className="space-y-4">
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   Nombre *
                 </label>
                 <input
@@ -164,13 +164,13 @@ export default function RegistroVisitanteTab() {
                   value={formData.nombre}
                   onChange={handleInputChange}
                   required
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 />
               </div>
 
               {/* Apellido */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   Apellido *
                 </label>
                 <input
@@ -180,17 +180,17 @@ export default function RegistroVisitanteTab() {
                   value={formData.apellido}
                   onChange={handleInputChange}
                   required
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 />
               </div>
 
               {/* DNI / Identificación */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   DNI / Identificación *
                 </label>
                 <div className="relative">
-                  <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
                     name="dni"
@@ -199,42 +199,42 @@ export default function RegistroVisitanteTab() {
                     onChange={handleInputChange}
                     maxLength={8}
                     required
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Teléfono */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   Teléfono
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="tel"
                     name="telefono"
                     placeholder="Ej: +51 999 999 999"
                     value={formData.telefono}
                     onChange={handleInputChange}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Departamento a Visitar */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   Departamento a Visitar *
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <select
                     name="depart_visita"
                     value={formData.depart_visita}
                     onChange={handleInputChange}
                     required
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none cursor-pointer"
+                    className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none cursor-pointer"
                   >
                     <option value="">Selecciona departamento</option>
                     {departamentos.map((depto, index) => (
@@ -248,18 +248,18 @@ export default function RegistroVisitanteTab() {
 
               {/* Notas Adicionales */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   Notas Adicionales
                 </label>
                 <div className="relative">
-                  <FileText className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
+                  <FileText className="absolute left-3 top-3 w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <textarea
                     name="motivo"
                     placeholder="Ej: Visitante frecuente, entrega de paquete, etc."
                     value={formData.motivo}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                    className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-none"
                   />
                 </div>
               </div>
@@ -270,35 +270,35 @@ export default function RegistroVisitanteTab() {
               {/* Fecha y Hora */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                     Fecha de Visita
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="date"
                       name="fecha_visita"
                       value={formData.fecha_visita}
                       onChange={handleInputChange}
                       required
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                     Hora
                   </label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="time"
                       name="hora_visita"
                       value={formData.hora_visita}
                       onChange={handleInputChange}
                       required
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -306,42 +306,42 @@ export default function RegistroVisitanteTab() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                     Válido Hasta
                   </label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="time"
                       name="validoHasta"
                       value={formData.validoHasta}
                       onChange={handleInputChange}
                       required
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                     Hora
                   </label>
                   <input
                     type="text"
                     value={formData.validoHasta}
                     readOnly
-                    className="w-full bg-slate-700 border border-slate-700 rounded-lg px-4 py-2.5 text-gray-400"
+                    className="w-full bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Foto del Visitante */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
                   Foto del Visitante *
                 </label>
 
-                <label className="flex items-center gap-2 text-sm text-gray-300 mb-3">
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-gray-300 mb-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={!formData.acepta_foto}
@@ -358,12 +358,13 @@ export default function RegistroVisitanteTab() {
                         setShowCamera(false);
                       }
                     }}
+                    className="rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
                   />
                   El visitante no autoriza que se le tome foto.
                 </label>
 
                 {perfilApp?.politica_foto_requerida && (
-                  <p className="text-amber-400 text-xs mb-2">Politica activa: la foto es obligatoria.</p>
+                  <p className="text-amber-500 dark:text-amber-400 text-xs mb-2">Politica activa: la foto es obligatoria.</p>
                 )}
 
                 {!formData.acepta_foto && (
@@ -373,13 +374,13 @@ export default function RegistroVisitanteTab() {
                     value={formData.observacion_privacidad}
                     onChange={handleInputChange}
                     rows={2}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 mb-3"
+                    className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 mb-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                   />
                 )}
                 
-                <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center bg-slate-800/50">
+                <div className="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg p-6 text-center bg-gray-50 dark:bg-slate-800/50 transition-colors">
                   {!formData.acepta_foto ? (
-                    <div className="text-gray-400 text-sm">Registro sin foto autorizado por el visitante.</div>
+                    <div className="text-gray-500 dark:text-gray-400 text-sm">Registro sin foto autorizado por el visitante.</div>
                   ) : (
                     showCamera ? (
                       <div className="space-y-4">
@@ -404,7 +405,7 @@ export default function RegistroVisitanteTab() {
                         <button
                           type="button"
                           onClick={() => setShowCamera(false)}
-                          className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg font-medium transition-colors"
+                          className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white py-2 rounded-lg font-medium transition-colors"
                         >
                           Cancelar
                         </button>
@@ -426,8 +427,8 @@ export default function RegistroVisitanteTab() {
                       </div>
                     ) : (
                       <div>
-                        <Camera className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                        <p className="text-gray-400 text-sm mb-4">
+                        <Camera className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
                           Captura la foto del visitante para el reconocimiento facial
                         </p>
                         <button
@@ -447,7 +448,7 @@ export default function RegistroVisitanteTab() {
           </div>
 
           {/* Botones de Acción */}
-          <div className="flex gap-4 mt-8 pt-6 border-t border-dark-border">
+          <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
             <button
               type="submit"
               disabled={loading}
@@ -461,22 +462,22 @@ export default function RegistroVisitanteTab() {
               type="button"
               onClick={limpiarFormulario}
               disabled={loading}
-              className="px-8 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Limpiar
             </button>
           </div>
 
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
+            <div className="mt-4 p-4 bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 rounded-lg text-red-600 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
         </form>
       </div>
 
-      <div className="bg-dark-card border border-dark-border rounded-lg p-6 mt-6">
-        <p className="text-gray-400 text-sm">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 mt-6 shadow-sm transition-colors">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
           Los listados de visitantes recientes y visitas frecuentes ahora están en la pestaña Opciones.
         </p>
       </div>

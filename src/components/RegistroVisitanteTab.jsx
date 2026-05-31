@@ -4,6 +4,69 @@ import Webcam from 'react-webcam';
 import { format } from 'date-fns';
 import ApiService from '../services/api';
 
+const analizarCalidadFoto = (base64Image) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Image;
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 75;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        let totalLuminance = 0;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i+1];
+          const b = data[i+2];
+          const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+          totalLuminance += luminance;
+        }
+        
+        const numPixels = data.length / 4;
+        const avgBrightness = totalLuminance / numPixels;
+        
+        let sumSqDiff = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i+1];
+          const b = data[i+2];
+          const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+          const diff = luminance - avgBrightness;
+          sumSqDiff += diff * diff;
+        }
+        const contrast = Math.sqrt(sumSqDiff / numPixels);
+        
+        let esApta = true;
+        let mensaje = '✅ Foto apta para reconocimiento facial';
+        
+        if (avgBrightness < 50) {
+          esApta = false;
+          mensaje = '⚠️ Foto muy oscura. Acerque una luz o mejore la iluminación.';
+        } else if (avgBrightness > 215) {
+          esApta = false;
+          mensaje = '⚠️ Foto sobreexpuesta. Evite la luz directa del sol o focos fuertes.';
+        } else if (contrast < 20) {
+          esApta = false;
+          mensaje = '⚠️ Imagen borrosa o con muy bajo contraste.';
+        }
+        
+        resolve({ esApta, brillo: Math.round(avgBrightness), contraste: Math.round(contrast), mensaje });
+      } catch (e) {
+        resolve({ esApta: true, mensaje: 'Calidad de imagen aceptable' });
+      }
+    };
+    img.onerror = () => {
+      resolve({ esApta: true, mensaje: 'Error al verificar imagen' });
+    };
+  });
+};
+
 export default function RegistroVisitanteTab() {
   const [formData, setFormData] = useState({
     nombre: '',
@@ -22,6 +85,7 @@ export default function RegistroVisitanteTab() {
 
   const [showCamera, setShowCamera] = useState(false);
   const [fotoCaptured, setFotoCaptured] = useState(null);
+  const [calidadFoto, setCalidadFoto] = useState(null);
   const [departamentos, setDepartamentos] = useState([]);
   const [perfilApp, setPerfilApp] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -75,6 +139,12 @@ export default function RegistroVisitanteTab() {
     setFotoCaptured(imageSrc);
     setFormData(prev => ({ ...prev, foto: imageSrc }));
     setShowCamera(false);
+
+    if (imageSrc) {
+      analizarCalidadFoto(imageSrc).then((res) => {
+        setCalidadFoto(res);
+      });
+    }
   };
 
   const limpiarFormulario = () => {
@@ -93,6 +163,7 @@ export default function RegistroVisitanteTab() {
       foto: null
     });
     setFotoCaptured(null);
+    setCalidadFoto(null);
   };
 
   const handleSubmit = async (e) => {
@@ -106,6 +177,11 @@ export default function RegistroVisitanteTab() {
     if (formData.acepta_foto && !formData.foto) {
       alert('Por favor, capture una foto del visitante');
       return;
+    }
+
+    if (formData.acepta_foto && calidadFoto && !calidadFoto.esApta) {
+      const continuar = window.confirm('⚠️ La calidad de la foto no es óptima (puede ser muy oscura o borrosa). ¿Desea registrar al visitante de todas formas?');
+      if (!continuar) return;
     }
 
     setLoading(true);
@@ -417,9 +493,28 @@ export default function RegistroVisitanteTab() {
                           alt="Foto capturada"
                           className="w-full rounded-lg"
                         />
+
+                        {/* Indicador de calidad de la foto */}
+                        {calidadFoto && (
+                          <div className={`p-3 rounded-lg text-sm font-medium transition-colors text-left ${
+                            calidadFoto.esApta 
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                          }`}>
+                            <p className="font-semibold">{calidadFoto.mensaje}</p>
+                            <div className="flex items-center gap-4 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-normal">
+                              <span>Brillo: {calidadFoto.brillo}/255</span>
+                              <span>Contraste: {calidadFoto.contraste}</span>
+                            </div>
+                          </div>
+                        )}
+
                         <button
                           type="button"
-                          onClick={() => setShowCamera(true)}
+                          onClick={() => {
+                            setShowCamera(true);
+                            setCalidadFoto(null);
+                          }}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition-colors"
                         >
                           📸 Tomar Nueva Foto

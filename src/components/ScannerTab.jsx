@@ -1,7 +1,49 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Camera, User } from 'lucide-react';
 import ApiService from '../services/api';
+
+const reproducirSonido = (tipo) => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    if (tipo === 'exito') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+      
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.35);
+    } else {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+      osc.frequency.setValueAtTime(147, ctx.currentTime + 0.12); // D3
+      
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    }
+  } catch (e) {
+    console.error('Error al reproducir audio:', e);
+  }
+};
 
 const ScannerFacial = ({ onScanComplete }) => {
   const [isScanning, setIsScanning] = useState(false);
@@ -9,7 +51,19 @@ const ScannerFacial = ({ onScanComplete }) => {
   const [cameraActive, setCameraActive] = useState(false);
   const [error, setError] = useState(null);
   const [dniBusqueda, setDniBusqueda] = useState('');
+  const [devices, setDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const webcamRef = useRef(null);
+
+  const handleDevices = useCallback(
+    (mediaDevices) =>
+      setDevices(mediaDevices.filter(({ kind }) => kind === "videoinput")),
+    [setDevices]
+  );
+
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices().then(handleDevices);
+  }, [handleDevices]);
 
   const iniciarEscaneo = async () => {
     setIsScanning(true);
@@ -50,6 +104,12 @@ const ScannerFacial = ({ onScanComplete }) => {
       
       setScanResult(resultadoFormateado);
       
+      if (resultadoFormateado.estado === 'AUTORIZADO') {
+        reproducirSonido('exito');
+      } else {
+        reproducirSonido('error');
+      }
+      
       if (onScanComplete) {
         onScanComplete(resultadoFormateado);
       }
@@ -69,6 +129,7 @@ const ScannerFacial = ({ onScanComplete }) => {
     } catch (err) {
       console.error('Error en escaneo:', err);
       setError(err.message || 'Error al procesar el escaneo');
+      reproducirSonido('error');
       
       // Resultado de error
       const resultadoError = {
@@ -100,7 +161,7 @@ const ScannerFacial = ({ onScanComplete }) => {
             videoConstraints={{
               width: 1280,
               height: 720,
-              facingMode: "user"
+              deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
             }}
           />
         ) : (
@@ -144,6 +205,23 @@ const ScannerFacial = ({ onScanComplete }) => {
           className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
         />
       </div>
+
+      {devices.length > 1 && (
+        <div className="mt-4">
+          <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">Seleccionar Cámara</label>
+          <select
+            value={selectedDeviceId}
+            onChange={(e) => setSelectedDeviceId(e.target.value)}
+            className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer"
+          >
+            {devices.map((device, key) => (
+              <option key={device.deviceId} value={device.deviceId}>
+                {device.label || `Cámara ${key + 1}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">

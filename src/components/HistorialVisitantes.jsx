@@ -52,18 +52,18 @@ export default function HistorialVisitantes() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+      <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6 shadow-sm transition-colors">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-6 h-6 text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-200">Opciones</h2>
+            <SlidersHorizontal className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-gray-200">Opciones</h2>
           </div>
 
           <button
             type="button"
             onClick={cargarDatos}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Recargar
@@ -71,25 +71,25 @@ export default function HistorialVisitantes() {
         </div>
 
         {error && (
-          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-300 text-sm">
+          <div className="mt-4 p-3 bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 rounded-lg text-red-600 dark:text-red-300 text-sm">
             {error}
           </div>
         )}
       </div>
 
-      <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+      <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6 shadow-sm transition-colors">
         <div className="flex items-center gap-2 mb-4">
-          <Users className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-gray-200">Visitantes recientes</h3>
+          <Users className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Visitantes recientes</h3>
         </div>
 
         {visitantesRecientes.length === 0 ? (
-          <p className="text-gray-400 text-sm">Aún no hay visitantes registrados.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Aún no hay visitantes registrados.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead>
-                <tr className="text-gray-400 border-b border-slate-700">
+                <tr className="text-slate-600 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
                   <th className="py-2 pr-4">Nombre</th>
                   <th className="py-2 pr-4">Apellido</th>
                   <th className="py-2 pr-4">DNI</th>
@@ -100,7 +100,7 @@ export default function HistorialVisitantes() {
               </thead>
               <tbody>
                 {visitantesRecientes.map((v) => (
-                  <tr key={v.idvisitante} className="border-b border-slate-800 text-gray-200">
+                  <tr key={v.idvisitante} className="border-b border-gray-100 dark:border-slate-800 text-slate-800 dark:text-gray-200">
                     <td className="py-2 pr-4">{v.nombre}</td>
                     <td className="py-2 pr-4">{v.apellido}</td>
                     <td className="py-2 pr-4">{v.dni}</td>
@@ -115,21 +115,21 @@ export default function HistorialVisitantes() {
         )}
       </div>
 
-      <div className="bg-dark-card border border-dark-border rounded-lg p-6">
+      <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6 shadow-sm transition-colors">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-gray-200">Visitas frecuentes</h3>
+          <TrendingUp className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Visitas frecuentes</h3>
         </div>
 
         {visitasFrecuentes.length === 0 ? (
-          <p className="text-gray-400 text-sm">Sin datos de visitas frecuentes.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Sin datos de visitas frecuentes.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {visitasFrecuentes.map((v, idx) => (
-              <div key={`${v.dni}-${idx}`} className="bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm">
-                <p className="text-white font-medium">{v.nombre} {v.apellido}</p>
-                <p className="text-gray-400">DNI: {v.dni}</p>
-                <p className="text-blue-400">Visitas: {v.total_visitas}</p>
+              <div key={`${v.dni}-${idx}`} className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm transition-colors">
+                <p className="text-slate-800 dark:text-white font-medium">{v.nombre} {v.apellido}</p>
+                <p className="text-gray-500 dark:text-gray-400">DNI: {v.dni}</p>
+                <p className="text-blue-600 dark:text-blue-400">Visitas: {v.total_visitas}</p>
               </div>
             ))}
           </div>

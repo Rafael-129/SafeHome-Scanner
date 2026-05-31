@@ -91,6 +91,7 @@ export default function RegistroVisitanteTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const webcamRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Cargar departamentos al montar el componente
   useEffect(() => {
@@ -147,6 +148,40 @@ export default function RegistroVisitanteTab() {
     }
   };
 
+  const cargarFotoDesdeArchivo = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, seleccione un archivo de imagen válido.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const imageSrc = reader.result;
+      setFotoCaptured(imageSrc);
+      setFormData(prev => ({ ...prev, foto: imageSrc }));
+      setShowCamera(false);
+
+      if (imageSrc) {
+        analizarCalidadFoto(imageSrc).then((res) => {
+          setCalidadFoto(res);
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      alert('No fue posible leer la imagen seleccionada.');
+    };
+
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   const limpiarFormulario = () => {
     setFormData({
       nombre: '',
@@ -164,6 +199,9 @@ export default function RegistroVisitanteTab() {
     });
     setFotoCaptured(null);
     setCalidadFoto(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -417,6 +455,14 @@ export default function RegistroVisitanteTab() {
                   Foto del Visitante *
                 </label>
 
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={cargarFotoDesdeArchivo}
+                  className="hidden"
+                />
+
                 <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-gray-300 mb-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -519,21 +565,37 @@ export default function RegistroVisitanteTab() {
                         >
                           📸 Tomar Nueva Foto
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white py-2 rounded-lg font-medium transition-colors"
+                        >
+                          🖼️ Subir otra foto
+                        </button>
                       </div>
                     ) : (
-                      <div>
+                      <div className="space-y-4">
                         <Camera className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
                         <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
                           Captura la foto del visitante para el reconocimiento facial
                         </p>
-                        <button
-                          type="button"
-                          onClick={() => setShowCamera(true)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
-                        >
-                          <Camera className="w-5 h-5" />
-                          Tomar Foto
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setShowCamera(true)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                          >
+                            <Camera className="w-5 h-5" />
+                            Tomar Foto
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white px-6 py-2 rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
+                          >
+                            🖼️ Subir Foto
+                          </button>
+                        </div>
                       </div>
                     )
                   )}

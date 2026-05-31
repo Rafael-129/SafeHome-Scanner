@@ -1,42 +1,32 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import Webcam from 'react-webcam';
-import { Camera, User } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Camera, User, CheckCircle, XCircle, Clock, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import ApiService from '../services/api';
 
+// ── Sonidos ──────────────────────────────────────────────────────────────────
 const reproducirSonido = (tipo) => {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
-    
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
     if (tipo === 'exito') {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
-      
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
-      
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.35);
     } else {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
-      osc.frequency.setValueAtTime(147, ctx.currentTime + 0.12); // D3
-      
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.setValueAtTime(147, ctx.currentTime + 0.12);
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-      
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.4);
     }
@@ -45,244 +35,160 @@ const reproducirSonido = (tipo) => {
   }
 };
 
-const ScannerFacial = ({ onScanComplete }) => {
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState(null);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [error, setError] = useState(null);
-  const [dniBusqueda, setDniBusqueda] = useState('');
-  const [devices, setDevices] = useState([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState('');
-  const webcamRef = useRef(null);
-
-  const handleDevices = useCallback(
-    (mediaDevices) =>
-      setDevices(mediaDevices.filter(({ kind }) => kind === "videoinput")),
-    [setDevices]
-  );
-
-  useEffect(() => {
-    navigator.mediaDevices.enumerateDevices().then(handleDevices);
-  }, [handleDevices]);
-
-  const iniciarEscaneo = async () => {
-    setIsScanning(true);
-    setScanResult(null);
-    setError(null);
-    
-    try {
-      // Capturar imagen de la webcam
-      const imageSrc = webcamRef.current?.getScreenshot();
-      
-      if (!imageSrc) {
-        throw new Error('No se pudo capturar la imagen');
-      }
-
-      // Enviar al backend para procesamiento
-      const escaneoData = {
-        foto_capturada: imageSrc,
-        tipo_persona: 'visitante', // Por defecto, el backend puede determinarlo mejor
-        dni: dniBusqueda.trim() || undefined,
-      };
-
-      const resultado = await ApiService.procesarEscaneo(escaneoData);
-      
-      // Adaptar respuesta del backend
-      const personaDetectada = !!(resultado.idusuario || resultado.idvisitante);
-      const resultadoFormateado = {
-        foto_capturada: imageSrc,
-        tipo_persona: resultado.tipo_persona || 'desconocido',
-        confianza_reconocimiento: 95.5, // El backend podría devolver esto
-        nombre: resultado.idusuario ? 
-          `${resultado.usuario_info?.nombre || ''} ${resultado.usuario_info?.apellido || ''}`.trim() :
-          resultado.idvisitante ?
-          `${resultado.visitante_info?.nombre || ''} ${resultado.visitante_info?.apellido || ''}`.trim() :
-          'Desconocido',
-        departamento: resultado.usuario_info?.departamento || resultado.visitante_info?.depart_visita || 'N/A',
-        estado: personaDetectada ? 'AUTORIZADO' : 'DESCONOCIDO'
-      };
-      
-      setScanResult(resultadoFormateado);
-      
-      if (resultadoFormateado.estado === 'AUTORIZADO') {
-        reproducirSonido('exito');
-      } else {
-        reproducirSonido('error');
-      }
-      
-      if (onScanComplete) {
-        onScanComplete(resultadoFormateado);
-      }
-
-      // Registrar en historial de accesos
-      if (personaDetectada) {
-        await ApiService.registrarAcceso({
-          idscanner: resultado.idscanner,
-          idusuario: resultado.idusuario || null,
-          idvisitante: resultado.idvisitante || null,
-          fecha_entrada: new Date().toISOString().split('T')[0],
-          hora_entrada: new Date().toTimeString().split(' ')[0],
-          estado: resultadoFormateado.estado === 'AUTORIZADO' ? 'Permitido' : 'Denegado'
-        });
-      }
-      
-    } catch (err) {
-      console.error('Error en escaneo:', err);
-      setError(err.message || 'Error al procesar el escaneo');
-      reproducirSonido('error');
-      
-      // Resultado de error
-      const resultadoError = {
-        foto_capturada: webcamRef.current?.getScreenshot(),
-        tipo_persona: 'error',
-        nombre: 'Error en escaneo',
-        estado: 'ERROR'
-      };
-      setScanResult(resultadoError);
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  return (
-    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
-      <div className="flex items-center gap-2 mb-4">
+// ── Panel izquierdo: foto capturada por la Pi ─────────────────────────────
+const PanelCamara = ({ fotoUrl, conectado, ultimaActualizacion }) => (
+  <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
         <Camera className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Vista de Cámara</h3>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">
+          Cámara SafeHome
+        </h3>
       </div>
-
-      <div className="relative bg-gray-100 dark:bg-slate-900 rounded-lg overflow-hidden aspect-video flex items-center justify-center border border-gray-200 dark:border-transparent transition-colors">
-        {cameraActive ? (
-          <Webcam
-            ref={webcamRef}
-            audio={false}
-            screenshotFormat="image/jpeg"
-            className="w-full h-full object-cover"
-            videoConstraints={{
-              width: 1280,
-              height: 720,
-              deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
-            }}
-          />
+      <div className="flex items-center gap-2">
+        {conectado ? (
+          <span className="flex items-center gap-1 text-xs text-green-500">
+            <Wifi className="w-3 h-3" /> En línea
+          </span>
         ) : (
-          <div className="text-center py-12">
-            <Camera className="w-16 h-16 text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500">Feed de Cámara</p>
-          </div>
-        )}
-
-        {isScanning && (
-          <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-            <div className="animate-pulse">
-              <div className="w-48 h-48 border-4 border-blue-500 rounded-lg"></div>
-            </div>
-          </div>
+          <span className="flex items-center gap-1 text-xs text-red-400">
+            <WifiOff className="w-3 h-3" /> Sin datos
+          </span>
         )}
       </div>
+    </div>
 
-      <button
-        onClick={() => {
-          if (!cameraActive) {
-            setCameraActive(true);
-          } else {
-            iniciarEscaneo();
-          }
-        }}
-        disabled={isScanning}
-        className="w-full mt-6 bg-slate-800 hover:bg-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {!cameraActive ? 'Activar Cámara' : isScanning ? 'Escaneando...' : 'Iniciar Escaneo'}
-      </button>
-
-      <div className="mt-4">
-        <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">DNI (opcional, para simulacion)</label>
-        <input
-          type="text"
-          maxLength={8}
-          value={dniBusqueda}
-          onChange={(e) => setDniBusqueda(e.target.value.replace(/\D/g, ''))}
-          placeholder="Ej: 45678912"
-          className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+    <div className="relative bg-gray-100 dark:bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center border border-gray-200 dark:border-transparent transition-colors" style={{ height: '500px' }}>
+      {true ? (
+        <img
+          src="http://192.168.1.14:8080/video"
+          alt="Stream en vivo de la Pi"
+          className="w-full h-full object-cover"
         />
-      </div>
-
-      {devices.length > 1 && (
-        <div className="mt-4">
-          <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">Seleccionar Cámara</label>
-          <select
-            value={selectedDeviceId}
-            onChange={(e) => setSelectedDeviceId(e.target.value)}
-            className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer"
-          >
-            {devices.map((device, key) => (
-              <option key={device.deviceId} value={device.deviceId}>
-                {device.label || `Cámara ${key + 1}`}
-              </option>
-            ))}
-          </select>
+      ) : (
+        <div className="text-center py-12">
+          <Camera className="w-16 h-16 text-gray-400 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">Esperando captura de la Raspberry Pi...</p>
+          <p className="text-gray-400 text-xs mt-1">El sistema escaneará automáticamente</p>
         </div>
       )}
 
-      {error && (
-        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
-          {error}
+      {/* Badge de tiempo real */}
+      <div className="absolute top-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        En vivo
+      </div>
+
+      {ultimaActualizacion && (
+        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+          <Clock className="w-3 h-3" />
+          {ultimaActualizacion}
         </div>
       )}
     </div>
-  );
-};
 
-const ResultadoEscaneo = ({ resultado }) => {
-  if (!resultado) {
+    <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center">
+      Las fotos son capturadas automáticamente por la Raspberry Pi en la entrada
+    </p>
+  </div>
+);
+
+// ── Panel derecho: resultado del último acceso ────────────────────────────
+const PanelResultado = ({ acceso }) => {
+  if (!acceso) {
     return (
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
         <div className="flex items-center gap-2 mb-4">
           <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Resultado del Escaneo</h3>
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">
+            Último Acceso
+          </h3>
         </div>
-        
         <div className="text-center py-16">
           <User className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-500">Esperando escaneo...</p>
+          <p className="text-gray-500 dark:text-gray-500">Sin registros aún</p>
+          <p className="text-gray-400 text-xs mt-1">El resultado aparecerá aquí automáticamente</p>
         </div>
       </div>
     );
   }
 
+  const esPermitido = acceso.estado === 'Permitido';
+  const nombre = acceso.usuario_info
+    ? `${acceso.usuario_info.nombre} ${acceso.usuario_info.apellido}`
+    : acceso.visitante_info
+    ? `${acceso.visitante_info.nombre} ${acceso.visitante_info.apellido}`
+    : 'Desconocido';
+
+  const departamento = acceso.usuario_info?.departamento || 'Visitante';
+  const foto = acceso.scanner_info?.foto_capturada || null;
+
   return (
-    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
-      <div className="flex items-center gap-2 mb-4">
-        <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Resultado del Escaneo</h3>
+    <div className={`bg-white dark:bg-slate-800 border-2 rounded-lg p-6 shadow-sm transition-all ${
+      esPermitido
+        ? 'border-green-400 dark:border-green-500'
+        : 'border-red-400 dark:border-red-500'
+    }`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">
+            Último Acceso
+          </h3>
+        </div>
+        <div className="flex items-center gap-1">
+          <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" style={{ animationDuration: '3s' }} />
+          <span className="text-xs text-gray-400">Auto</span>
+        </div>
       </div>
 
-      <div className="text-center py-8">
-        {resultado.foto_capturada && (
-          <img 
-            src={resultado.foto_capturada} 
-            alt="Captura" 
-            className="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-green-500"
-          />
-        )}
-
-        <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{resultado.nombre || 'Desconocido'}</h4>
-        
-        {resultado.departamento && (
-          <p className="text-blue-600 dark:text-blue-400 text-sm mb-4">📍 {resultado.departamento}</p>
-        )}
-
-        <div className="inline-block px-4 py-2 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-full text-sm font-medium mb-4 transition-colors">
-          {resultado.estado}
+      <div className="text-center py-4">
+        {/* Foto de la persona */}
+        <div className={`w-60 h-60 rounded-xl mx-auto mb-4 overflow-hidden border-4 ${
+          esPermitido ? 'border-green-400' : 'border-red-400'
+        }`}>
+          {foto ? (
+            <img src={foto} alt={nombre} className="w-full h-full object-cover" />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center ${
+              esPermitido ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
+            }`}>
+              <User className={`w-10 h-10 ${esPermitido ? 'text-green-500' : 'text-red-400'}`} />
+            </div>
+          )}
         </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
+        {/* Nombre */}
+        <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-1">{nombre}</h4>
+        <p className="text-blue-600 dark:text-blue-400 text-sm mb-4">📍 {departamento}</p>
+
+        {/* Badge de estado */}
+        <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-4 ${
+          esPermitido
+            ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
+            : 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400'
+        }`}>
+          {esPermitido
+            ? <><CheckCircle className="w-4 h-4" /> ACCESO PERMITIDO</>
+            : <><XCircle className="w-4 h-4" /> ACCESO DENEGADO</>
+          }
+        </div>
+
+        {/* Detalles */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Confianza:</span>
-            <span className="text-slate-800 dark:text-white font-medium">{resultado.confianza_reconocimiento}%</span>
+            <span className="text-gray-500 dark:text-gray-400">Fecha:</span>
+            <span className="text-slate-800 dark:text-white font-medium">{acceso.fecha_entrada}</span>
           </div>
-          <div className="flex justify-between text-sm mt-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500 dark:text-gray-400">Hora:</span>
+            <span className="text-slate-800 dark:text-white font-medium">{acceso.hora_entrada}</span>
+          </div>
+          <div className="flex justify-between text-sm">
             <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
-            <span className="text-slate-800 dark:text-white font-medium capitalize">{resultado.tipo_persona}</span>
+            <span className="text-slate-800 dark:text-white font-medium capitalize">
+              {acceso.usuario_info ? 'Residente' : 'Visitante'}
+            </span>
           </div>
         </div>
       </div>
@@ -290,13 +196,67 @@ const ResultadoEscaneo = ({ resultado }) => {
   );
 };
 
+// ── Componente principal ──────────────────────────────────────────────────
 export default function ScannerTab() {
-  const [scanResult, setScanResult] = useState(null);
+  const [ultimoAcceso, setUltimoAcceso] = useState(null);
+  const [ultimoIdHistorial, setUltimoIdHistorial] = useState(null);
+  const [conectado, setConectado] = useState(false);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
+  const intervalRef = useRef(null);
+
+  const fetchUltimoAcceso = async () => {
+    try {
+      const data = await ApiService.obtenerHistorialAccesos({ page: 1 });
+      const resultados = data?.results || [];
+
+      if (resultados.length === 0) return;
+
+      const ultimo = resultados[0]; // El más reciente
+
+      // Solo actualizar si hay uno nuevo
+      if (ultimo.idhistorial !== ultimoIdHistorial) {
+        setUltimoAcceso(ultimo);
+        setUltimoIdHistorial(ultimo.idhistorial);
+        setConectado(true);
+
+        // Reproducir sonido según estado
+        if (ultimo.estado === 'Permitido') {
+          reproducirSonido('exito');
+        } else if (ultimo.estado === 'Denegado') {
+          reproducirSonido('error');
+        }
+
+        // Actualizar hora
+        const ahora = new Date();
+        setUltimaActualizacion(ahora.toLocaleTimeString('es-PE'));
+      }
+    } catch (err) {
+      console.error('Error al obtener historial:', err);
+      setConectado(false);
+    }
+  };
+
+  useEffect(() => {
+    // Primera carga inmediata
+    fetchUltimoAcceso();
+
+    // Polling cada 3 segundos
+    intervalRef.current = setInterval(fetchUltimoAcceso, 3000);
+
+    return () => clearInterval(intervalRef.current);
+  }, [ultimoIdHistorial]);
+
+  // Obtener foto de la última captura del scanner
+  const fotoCapturada = ultimoAcceso?.scanner_info?.foto_capturada || null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <ScannerFacial onScanComplete={setScanResult} />
-      <ResultadoEscaneo resultado={scanResult} />
+      <PanelCamara
+        fotoUrl={fotoCapturada}
+        conectado={conectado}
+        ultimaActualizacion={ultimaActualizacion}
+      />
+      <PanelResultado acceso={ultimoAcceso} />
     </div>
   );
 }

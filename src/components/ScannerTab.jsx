@@ -36,6 +36,8 @@ const reproducirSonido = (tipo) => {
 };
 
 // ── Panel izquierdo: foto capturada por la Pi ─────────────────────────────
+const SCANNER_STREAM_URL =
+  import.meta.env.VITE_SCANNER_STREAM_URL;
 const PanelCamara = ({ fotoUrl, conectado, ultimaActualizacion }) => (
   <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 shadow-sm transition-colors">
     <div className="flex items-center justify-between mb-4">
@@ -61,7 +63,7 @@ const PanelCamara = ({ fotoUrl, conectado, ultimaActualizacion }) => (
     <div className="relative bg-gray-100 dark:bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center border border-gray-200 dark:border-transparent transition-colors" style={{ height: '500px' }}>
       {true ? (
         <img
-          src="http://192.168.1.14:8080/video"
+          src={SCANNER_STREAM_URL}
           alt="Stream en vivo de la Pi"
           className="w-full h-full object-cover"
         />

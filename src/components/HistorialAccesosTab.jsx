@@ -46,9 +46,11 @@ const AccesoItem = ({ acceso }) => {
             
             <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 dark:text-gray-400">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                acceso.tipo === 'Residente' 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' 
-                  : 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'
+                acceso.tipo === 'Residente'
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                  : acceso.tipo === 'Visitante'
+                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'
+                  : 'bg-gray-200 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
               }`}>
                 {acceso.tipo}
               </span>
@@ -124,7 +126,7 @@ export default function HistorialAccesosTab() {
             acceso.visitante_info ?
             `${acceso.visitante_info.nombre} ${acceso.visitante_info.apellido}` :
             'Desconocido',
-          tipo: acceso.idusuario ? 'Residente' : 'Visitante',
+          tipo: acceso.idusuario ? 'Residente' : (acceso.idvisitante ? 'Visitante' : 'Desconocido'),
           departamento: acceso.usuario_info?.departamento || acceso.visitante_info?.depart_visita || 'N/A',
           hora: acceso.hora_entrada,
           fecha: acceso.fecha_entrada,

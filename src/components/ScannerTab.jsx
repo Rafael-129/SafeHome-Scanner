@@ -116,13 +116,18 @@ const PanelResultado = ({ acceso }) => {
   }
 
   const esPermitido = acceso.estado === 'Permitido';
-  const nombre = acceso.usuario_info
+  const esResidente = !!acceso.usuario_info;
+  const esVisitante = !!acceso.visitante_info;
+  const tipoTexto = esResidente ? 'Residente' : esVisitante ? 'Visitante' : 'Desconocido';
+  const nombre = esResidente
     ? `${acceso.usuario_info.nombre} ${acceso.usuario_info.apellido}`
-    : acceso.visitante_info
+    : esVisitante
     ? `${acceso.visitante_info.nombre} ${acceso.visitante_info.apellido}`
     : 'Desconocido';
 
-  const departamento = acceso.usuario_info?.departamento || 'Visitante';
+  const departamento = acceso.usuario_info?.departamento
+    || acceso.visitante_info?.depart_visita
+    || (esVisitante ? 'Visitante' : 'No identificado');
   const foto = acceso.scanner_info?.foto_capturada || null;
 
   return (
@@ -189,7 +194,7 @@ const PanelResultado = ({ acceso }) => {
           <div className="flex justify-between text-sm">
             <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
             <span className="text-slate-800 dark:text-white font-medium capitalize">
-              {acceso.usuario_info ? 'Residente' : 'Visitante'}
+              {tipoTexto}
             </span>
           </div>
         </div>

@@ -70,6 +70,14 @@ class ApiService {
     return this.request('/scanner/recientes/');
   }
 
+  // ============ INGRESOS EVENTUALES (por DNI) ============
+  async registrarIngresoEventual(data) {
+    return this.request('/ingresos-eventuales/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // ============ VISITANTES ============
   async registrarVisitante(visitante) {
     return this.request('/visitantes/', {

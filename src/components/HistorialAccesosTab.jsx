@@ -50,6 +50,8 @@ const AccesoItem = ({ acceso }) => {
                   ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                   : acceso.tipo === 'Visitante'
                   ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'
+                  : acceso.tipo === 'Eventual'
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
                   : 'bg-gray-200 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
               }`}>
                 {acceso.tipo}
@@ -121,13 +123,15 @@ export default function HistorialAccesosTab() {
 
         return {
           id: acceso.idhistorial,
-          nombre: acceso.usuario_info ? 
+          nombre: acceso.usuario_info ?
             `${acceso.usuario_info.nombre} ${acceso.usuario_info.apellido}` :
             acceso.visitante_info ?
             `${acceso.visitante_info.nombre} ${acceso.visitante_info.apellido}` :
+            acceso.eventual_info ?
+            `${acceso.eventual_info.nombre} ${acceso.eventual_info.apellido}` :
             'Desconocido',
-          tipo: acceso.idusuario ? 'Residente' : (acceso.idvisitante ? 'Visitante' : 'Desconocido'),
-          departamento: acceso.usuario_info?.departamento || acceso.visitante_info?.depart_visita || 'N/A',
+          tipo: acceso.idusuario ? 'Residente' : (acceso.idvisitante ? 'Visitante' : (acceso.ideventual ? 'Eventual' : 'Desconocido')),
+          departamento: acceso.usuario_info?.departamento || acceso.visitante_info?.depart_visita || acceso.eventual_info?.depart_visita || 'N/A',
           hora: acceso.hora_entrada,
           fecha: acceso.fecha_entrada,
           estado: estadoMostrar

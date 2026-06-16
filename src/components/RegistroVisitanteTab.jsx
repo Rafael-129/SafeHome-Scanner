@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { UserPlus, Camera, Calendar, Clock, MapPin, Phone, IdCard, FileText } from 'lucide-react';
+import { UserPlus, Camera, Calendar, Clock, MapPin, Phone, IdCard, FileText, ShieldCheck, X } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
 import ApiService from '../services/api';
+import { TERMINOS_TITULO, TERMINOS_TEXTO, RETENCION_DIAS } from '../constants/terminos';
 
 const analizarCalidadFoto = (base64Image) => {
   return new Promise((resolve) => {
@@ -57,7 +58,7 @@ const analizarCalidadFoto = (base64Image) => {
         }
         
         resolve({ esApta, brillo: Math.round(avgBrightness), contraste: Math.round(contrast), mensaje });
-      } catch (e) {
+      } catch {
         resolve({ esApta: true, mensaje: 'Calidad de imagen aceptable' });
       }
     };
@@ -80,9 +81,11 @@ export default function RegistroVisitanteTab() {
     motivo: '',
     acepta_foto: true,
     observacion_privacidad: '',
+    acepta_terminos: false,
     foto: null
   });
 
+  const [showTerminos, setShowTerminos] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [fotoCaptured, setFotoCaptured] = useState(null);
   const [calidadFoto, setCalidadFoto] = useState(null);
@@ -195,6 +198,7 @@ export default function RegistroVisitanteTab() {
       motivo: '',
       acepta_foto: true,
       observacion_privacidad: '',
+      acepta_terminos: false,
       foto: null
     });
     setFotoCaptured(null);
@@ -206,6 +210,11 @@ export default function RegistroVisitanteTab() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.acepta_terminos) {
+      alert('Debe aceptar los términos y condiciones de tratamiento de datos para registrar al visitante.');
+      return;
+    }
 
     if (perfilApp?.politica_foto_requerida && !formData.acepta_foto) {
       alert('La politica actual requiere foto para registrar visitantes.');
@@ -237,6 +246,7 @@ export default function RegistroVisitanteTab() {
         depart_visita: formData.depart_visita,
         acepta_foto: formData.acepta_foto,
         observacion_privacidad: formData.acepta_foto ? '' : (formData.observacion_privacidad || 'Visitante no autoriza captura de foto.'),
+        acepta_terminos: formData.acepta_terminos,
         foto: formData.acepta_foto ? formData.foto : null
       };
 
@@ -604,8 +614,36 @@ export default function RegistroVisitanteTab() {
             </div>
           </div>
 
+          {/* Términos y Condiciones (obligatorio) */}
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="acepta_terminos"
+                checked={formData.acepta_terminos}
+                onChange={(e) => setFormData((prev) => ({ ...prev, acepta_terminos: e.target.checked }))}
+                className="mt-1 rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+              <span className="text-sm text-slate-700 dark:text-gray-300">
+                Acepto los{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowTerminos(true)}
+                  className="text-blue-600 dark:text-blue-400 underline font-medium hover:text-blue-700"
+                >
+                  términos y condiciones
+                </button>{' '}
+                de tratamiento de datos personales. *
+              </span>
+            </label>
+            <p className="flex items-center gap-1.5 mt-2 ml-7 text-xs text-gray-500 dark:text-gray-400">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              La foto se conserva un máximo de {RETENCION_DIAS} días y se elimina automáticamente.
+            </p>
+          </div>
+
           {/* Botones de Acción */}
-          <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
             <button
               type="submit"
               disabled={loading}
@@ -638,6 +676,60 @@ export default function RegistroVisitanteTab() {
           Los listados de visitantes recientes y visitas frecuentes ahora están en la pestaña Opciones.
         </p>
       </div>
+
+      {/* Modal de Términos y Condiciones */}
+      {showTerminos && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowTerminos(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-slate-700">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">{TERMINOS_TITULO}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTerminos(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto">
+              <p className="text-sm text-slate-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                {TERMINOS_TEXTO}
+              </p>
+            </div>
+
+            <div className="p-5 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowTerminos(false)}
+                className="px-5 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-medium transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, acepta_terminos: true }));
+                  setShowTerminos(false);
+                }}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Acepto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

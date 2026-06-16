@@ -132,7 +132,7 @@ const PanelResultado = ({ acceso }) => {
     || acceso.visitante_info?.depart_visita
     || acceso.eventual_info?.depart_visita
     || (esVisitante || esEventual ? 'Visitante' : 'No identificado');
-  const foto = acceso.scanner_info?.foto_capturada || null;
+  const foto = acceso.foto_url || acceso.scanner_info?.foto_capturada || null;
 
   return (
     <div className={`bg-white dark:bg-slate-800 border-2 rounded-lg p-6 shadow-sm transition-all ${

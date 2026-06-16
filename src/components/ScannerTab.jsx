@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Camera, User, CheckCircle, XCircle, Clock, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Camera, User, CheckCircle, XCircle, Clock, Wifi, WifiOff, RefreshCw, IdCard, UserPlus, MapPin, X } from 'lucide-react';
 import ApiService from '../services/api';
 
 // ── Sonidos ──────────────────────────────────────────────────────────────────
@@ -118,16 +118,20 @@ const PanelResultado = ({ acceso }) => {
   const esPermitido = acceso.estado === 'Permitido';
   const esResidente = !!acceso.usuario_info;
   const esVisitante = !!acceso.visitante_info;
-  const tipoTexto = esResidente ? 'Residente' : esVisitante ? 'Visitante' : 'Desconocido';
+  const esEventual = !!acceso.eventual_info;
+  const tipoTexto = esResidente ? 'Residente' : esVisitante ? 'Visitante' : esEventual ? 'Eventual' : 'Desconocido';
   const nombre = esResidente
     ? `${acceso.usuario_info.nombre} ${acceso.usuario_info.apellido}`
     : esVisitante
     ? `${acceso.visitante_info.nombre} ${acceso.visitante_info.apellido}`
+    : esEventual
+    ? `${acceso.eventual_info.nombre} ${acceso.eventual_info.apellido}`
     : 'Desconocido';
 
   const departamento = acceso.usuario_info?.departamento
     || acceso.visitante_info?.depart_visita
-    || (esVisitante ? 'Visitante' : 'No identificado');
+    || acceso.eventual_info?.depart_visita
+    || (esVisitante || esEventual ? 'Visitante' : 'No identificado');
   const foto = acceso.scanner_info?.foto_capturada || null;
 
   return (
@@ -203,17 +207,138 @@ const PanelResultado = ({ acceso }) => {
   );
 };
 
+// ── Modal: Ingreso por DNI (persona eventual, sin cámara) ─────────────────
+const ModalIngresoDNI = ({ onClose, onSuccess }) => {
+  const [form, setForm] = useState({ dni: '', nombre: '', apellido: '', depart_visita: '', motivo: '' });
+  const [departamentos, setDepartamentos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    ApiService.obtenerDepartamentos()
+      .then((res) => setDepartamentos(res.results || res))
+      .catch(() => setDepartamentos([]));
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.dni || !form.nombre || !form.apellido || !form.depart_visita) {
+      setError('Complete DNI, nombre, apellido y departamento.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await ApiService.registrarIngresoEventual({
+        dni: form.dni,
+        nombre: form.nombre,
+        apellido: form.apellido,
+        depart_visita: form.depart_visita,
+        motivo: form.motivo || '',
+      });
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      setError(err.message || 'No se pudo registrar el ingreso.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputCls = 'w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <IdCard className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-gray-200">Ingreso por DNI</h3>
+          </div>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Cerrar">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Para personas que entran de forma puntual (repartidor, proveedor, técnico) sin reconocimiento facial.
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">DNI *</label>
+            <input type="text" name="dni" value={form.dni} onChange={handleChange} maxLength={8} placeholder="12345678" className={inputCls} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Nombre *</label>
+              <input type="text" name="nombre" value={form.nombre} onChange={handleChange} placeholder="Juan" className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Apellido *</label>
+              <input type="text" name="apellido" value={form.apellido} onChange={handleChange} placeholder="Pérez" className={inputCls} />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Departamento que visita *</label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <select name="depart_visita" value={form.depart_visita} onChange={handleChange} className={`${inputCls} pl-11 appearance-none cursor-pointer`}>
+                <option value="">Selecciona departamento</option>
+                {departamentos.map((d, i) => (
+                  <option key={i} value={d.codigo}>{d.codigo}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Motivo</label>
+            <input type="text" name="motivo" value={form.motivo} onChange={handleChange} placeholder="Ej: Entrega de mueble" className={inputCls} />
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 rounded-lg text-red-600 dark:text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? 'Registrando...' : 'Registrar ingreso'}
+            </button>
+            <button type="button" onClick={onClose} className="px-6 bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white py-2.5 rounded-lg font-medium transition-colors">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // ── Componente principal ──────────────────────────────────────────────────
 export default function ScannerTab() {
   const [ultimoAcceso, setUltimoAcceso] = useState(null);
   const [ultimoIdHistorial, setUltimoIdHistorial] = useState(null);
   const [conectado, setConectado] = useState(false);
   const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
+  const [showIngresoDNI, setShowIngresoDNI] = useState(false);
   const intervalRef = useRef(null);
 
   const fetchUltimoAcceso = async () => {
     try {
-      const data = await ApiService.obtenerHistorialAccesos({ page: 1 });
+      const data = await ApiService.obtenerHistorialAccesos({ page: 1, page_size: 1 });
       const resultados = data?.results || [];
 
       if (resultados.length === 0) return;
@@ -247,8 +372,8 @@ export default function ScannerTab() {
     // Primera carga inmediata
     fetchUltimoAcceso();
 
-    // Polling cada 3 segundos
-    intervalRef.current = setInterval(fetchUltimoAcceso, 3000);
+    // Polling cada 8 segundos (reduce egress; antes 3s)
+    intervalRef.current = setInterval(fetchUltimoAcceso, 8000);
 
     return () => clearInterval(intervalRef.current);
   }, [ultimoIdHistorial]);
@@ -257,13 +382,33 @@ export default function ScannerTab() {
   const fotoCapturada = ultimoAcceso?.scanner_info?.foto_capturada || null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <PanelCamara
-        fotoUrl={fotoCapturada}
-        conectado={conectado}
-        ultimaActualizacion={ultimaActualizacion}
-      />
-      <PanelResultado acceso={ultimoAcceso} />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowIngresoDNI(true)}
+          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors"
+        >
+          <UserPlus className="w-5 h-5" />
+          Ingreso por DNI
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PanelCamara
+          fotoUrl={fotoCapturada}
+          conectado={conectado}
+          ultimaActualizacion={ultimaActualizacion}
+        />
+        <PanelResultado acceso={ultimoAcceso} />
+      </div>
+
+      {showIngresoDNI && (
+        <ModalIngresoDNI
+          onClose={() => setShowIngresoDNI(false)}
+          onSuccess={fetchUltimoAcceso}
+        />
+      )}
     </div>
   );
 }

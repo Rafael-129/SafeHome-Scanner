@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { UserPlus, Camera, Calendar, Clock, MapPin, Phone, IdCard, FileText, ShieldCheck, X } from 'lucide-react';
+import { UserPlus, Camera, Calendar, Clock, MapPin, Phone, IdCard, FileText, ShieldCheck, X, AlertTriangle } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
 import ApiService from '../services/api';
@@ -76,7 +76,6 @@ export default function RegistroVisitanteTab() {
     telefono: '',
     fecha_visita: format(new Date(), 'yyyy-MM-dd'),
     hora_visita: format(new Date(), 'HH:mm'),
-    validoHasta: '23:59',
     depart_visita: '',
     motivo: '',
     acepta_foto: true,
@@ -193,7 +192,6 @@ export default function RegistroVisitanteTab() {
       telefono: '',
       fecha_visita: format(new Date(), 'yyyy-MM-dd'),
       hora_visita: format(new Date(), 'HH:mm'),
-      validoHasta: '23:59',
       depart_visita: '',
       motivo: '',
       acepta_foto: true,
@@ -428,37 +426,6 @@ export default function RegistroVisitanteTab() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
-                    Válido Hasta
-                  </label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                    <input
-                      type="time"
-                      name="validoHasta"
-                      value={formData.validoHasta}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-11 pr-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
-                    Hora
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.validoHasta}
-                    readOnly
-                    className="w-full bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
               {/* Foto del Visitante */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">
@@ -640,6 +607,16 @@ export default function RegistroVisitanteTab() {
               <ShieldCheck className="w-3.5 h-3.5" />
               La foto se conserva un máximo de {RETENCION_DIAS} días y se elimina automáticamente.
             </p>
+
+            {!formData.acepta_foto && (
+              <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/40 text-amber-700 dark:text-amber-400 text-sm">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>
+                  <strong>Nota:</strong> Si el visitante no autoriza que se le tome foto, toda la
+                  responsabilidad recae en el residente que lo invitó.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Botones de Acción */}
